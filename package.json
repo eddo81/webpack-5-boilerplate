@@ -1,0 +1,31 @@
+{
+  "name": "webpack-5-boilerplate",
+  "version": "1.0.0",
+  "author": "eddo81 <eduardo_jonnerstig@live.com>",
+  "main": "",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/eddo81/webpack-5-boilerplate.git"
+  },
+  "scripts": {
+    "build": "cross-env NODE_ENV=production webpack --progress --mode production",
+    "start": "node ./webpack-5-boilerplate.js"
+  },
+  "bin": {
+    "create-nova-theme": "./create-nova-theme.js"
+  },
+  "dependencies": {
+    "chalk": "^4.1.2",
+    "cross-env": "^7.0.3",
+    "ejs": "^3.1.6",
+    "figlet": "^1.5.0",
+    "fs-extra": "^10.0.0",
+    "glob": "^7.1.7",
+    "ora": "^5.4.1",
+    "promisify-child-process": "^4.1.1",
+    "prompts": "^2.4.1",
+    "yargs": "^17.1.0"
+  },
+  "devDependencies": {}
+}

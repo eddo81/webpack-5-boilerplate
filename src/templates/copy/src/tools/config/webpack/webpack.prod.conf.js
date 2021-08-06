@@ -1,0 +1,49 @@
+const _CONFIG = require('../index.js');
+const { merge } = require('webpack-merge');
+const baseWebpackConfig = require('./webpack.base.conf');
+const TerserPlugin = require('terser-webpack-plugin');
+const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
+const safeParser = require('postcss-safe-parser');
+
+let webpackConfig = merge(baseWebpackConfig, {
+  devtool: 'source-map',
+
+  output: {
+    chunkFilename: `${_CONFIG.directories.output.js}[name].[chunkhash].js`
+  },
+
+  plugins: [],
+
+  optimization: {
+		runtimeChunk: {
+			name: entrypoint => `runtimechunk~${entrypoint.name}`
+		},
+
+    minimizer: [
+      new TerserPlugin({
+        parallel: true,
+        terserOptions: {
+          output: { comments: false },
+          compress: { warnings: false, drop_console: true },
+          mangle: { reserved: ["$", "exports", "require"] }
+        }
+      }),
+
+			new CssMinimizerPlugin({
+        minimizerOptions: {
+					processorOptions: {
+            parser: safeParser,
+          },
+          preset: [
+            "default",
+            { discardComments: { removeAll: true } },
+          ],
+        },
+      }),
+    ],
+
+    emitOnErrors: false
+  }
+});
+
+module.exports = webpackConfig;
