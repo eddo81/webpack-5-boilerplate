@@ -18,7 +18,8 @@
   "bin": {
     "webpack-5-boilerplate": "./webpack-5-boilerplate"
   },
-  "dependencies": {
+  "dependencies": {},
+  "devDependencies": {
     "chalk": "^4.1.2",
     "cross-env": "^7.0.3",
     "ejs": "^3.1.6",
@@ -29,6 +30,5 @@
     "promisify-child-process": "^4.1.1",
     "prompts": "^2.4.1",
     "yargs": "^17.1.0"
-  },
-  "devDependencies": {}
+  }
 }
