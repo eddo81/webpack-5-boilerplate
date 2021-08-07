@@ -13,7 +13,7 @@
     "start": "node ./webpack-5-boilerplate.js"
   },
   "bin": {
-    "create-nova-theme": "./create-nova-theme.js"
+    "webpack-5-boilerplate": "./webpack-5-boilerplate.js"
   },
   "dependencies": {
     "chalk": "^4.1.2",
