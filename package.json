@@ -1,5 +1,5 @@
 {
-  "name": "webpack-5-boilerplate",
+  "name": "@eddo81/webpack-5-boilerplate",
   "version": "1.0.0",
   "author": "eddo81 <eduardo_jonnerstig@live.com>",
   "main": "webpack-5-boilerplate.js",
