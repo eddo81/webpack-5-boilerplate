@@ -2,6 +2,7 @@
   "name": "@eddo81/webpack-5-boilerplate",
   "version": "1.0.0",
   "author": "eddo81 <eduardo_jonnerstig@live.com>",
+  "private": false,
   "main": "webpack-5-boilerplate.js",
   "license": "MIT",
   "repository": {
