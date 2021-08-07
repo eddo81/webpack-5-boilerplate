@@ -1,6 +1,6 @@
 {
   "name": "@eddo81/webpack-5-boilerplate",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "author": "eddo81 <eduardo_jonnerstig@live.com>",
   "private": false,
   "publishConfig": {
@@ -16,7 +16,7 @@
     "start": "node ./webpack-5-boilerplate.js"
   },
   "bin": {
-    "webpack-5-boilerplate": "./webpack-5-boilerplate.js"
+    "webpack-5-boilerplate": "./webpack-5-boilerplate"
   },
   "dependencies": {
     "chalk": "^4.1.2",
