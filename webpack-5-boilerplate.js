@@ -185,7 +185,7 @@ const run = async () => {
   //  2. Clone repo
   // -----------------------------
 
-  const gitUrl = `https://github.com/eddo81/create-nova-theme.git`;
+  const gitUrl = `https://github.com/eddo81/webpack-5-boilerplate.git`;
 
   const spinnerClone = ora(`${counter}. Cloning ${projectType} repo`).start();
   await exec(`git clone ${gitUrl} ${data.folderName}/temp`)
