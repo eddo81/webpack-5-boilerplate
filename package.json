@@ -10,8 +10,7 @@
     "url": "https://github.com/eddo81/webpack-5-boilerplate"
   },
   "scripts": {
-    "start": "node ./webpack-5-boilerplate.js",
-    "postinstall": "npm run start"
+    "start": "node ./webpack-5-boilerplate.js"
   },
   "bin": {
     "webpack-5-boilerplate": "./webpack-5-boilerplate.js"
