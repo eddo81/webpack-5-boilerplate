@@ -3,13 +3,12 @@
 **License:** MIT 
 
 ## Description
+<%= projectDescription %>
 
 ## Copyright
 
-<%= projectName %>, Copyright <%= author.name %>
+<%= projectName %>, Copyright <%= year %> <%= author.name %>
 <%= projectName %> is distributed under the terms of the MIT license
-
-<%= projectName %> bundles the following third-party resources:
 
 ## Changelog
 

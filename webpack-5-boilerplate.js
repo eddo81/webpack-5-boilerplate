@@ -74,6 +74,16 @@ const run = async () => {
     const answers = await prompts(
       [
         {
+          type: "text",
+          name: "projectName",
+          message: `Please enter the project name:`,
+          validate: value =>
+            value.length < 2
+              ? `The project name is required and must contain at least 2 characters.`
+              : true
+        },
+
+        {
           type:  (args.skip !== true) ? "text" : null,
           name: "authorName",
           message: `Please enter the name of the project author:`,
@@ -93,22 +103,18 @@ const run = async () => {
         },
 
         {
-          type: "text",
-          name: "name",
-          message: `Please enter your project name:`,
-          validate: value =>
-            value.length < 2
-              ? `The project name is required and must contain at least 2 characters.`
-              : true
+          type:  (args.skip !== true) ? "text" : null,
+          name: "projectDescription",
+          message: `Please enter a project description:`,
         },
 
         {
           type: "select",
-          name: "csslibs",
-          message: "Select a css library:",
+          name: "useTailwind",
+          message: "Do you wish to include the Tailwind.css library in this project:",
           choices: [
-            { title: "None", value: "none", selected: true },
-            { title: "Tailwind CSS", value: "tailwind" }
+            { title: "No", value: false, selected: true },
+            { title: "Yes", value: true }
           ],
           initial: 1
         }
@@ -121,10 +127,12 @@ const run = async () => {
       email: answers.authorEmail ? answers.authorEmail : '',
       full: answers.authorName ? `${answers.authorName}${answers.authorEmail ? ' <' + answers.authorEmail + '>' : ''}${answers.authorUrl ? ' (' + answers.authorUrl + ')' : ''}` : ''
     };
-    data.projectName = answers.name;
-    data.folderName = format.dash(data.projectName);
-    data.packageName = format.underscore(data.projectName);
-    data.tailwind = answers.csslibs === "tailwind";
+    data.projectName        = answers.projectName;
+    data.projectDescription = answers.projectDescription || '';
+    data.folderName         = format.dash(data.projectName);
+    data.packageName        = format.underscore(data.projectName);
+    data.tailwind           = answers.useTailwind === true;
+    data.year               = new Date().getFullYear();
 
     // Globally save the package (because it's also our folder name)
     fullProjectPath = path.join(process.cwd(), data.folderName);
@@ -187,7 +195,7 @@ const run = async () => {
 
   const gitUrl = `https://github.com/eddo81/webpack-5-boilerplate.git`;
 
-  const spinnerClone = ora(`${counter}. Cloning ${projectType} repo`).start();
+  const spinnerClone = ora(`${counter}. Cloning the github repo`).start();
   await exec(`git clone ${gitUrl} ${data.folderName}/temp`)
     .then(() => {
       spinnerClone.succeed();
@@ -239,6 +247,12 @@ const run = async () => {
       );
 
       if (data.tailwind !== false) {
+        const tailwindConfigDir = `./${data.folderName}/src/tools/config/tailwind`;
+
+        if (!fs.existsSync(tailwindConfigDir)){
+          fs.mkdirSync(tailwindConfigDir, { recursive: true });
+        }
+
         copyTpl(
           `./${data.folderName}/temp/src/templates/modify/_tailwind.js`,
           `./${data.folderName}/src/tools/config/tailwind/tailwind.js`,

@@ -1,9 +1,8 @@
 {
 	"name": "<%= packageName %>",
 	"version": "1.0.0",
-	"description": "",
-	"author": "",
-	"contributors": ["<%= author.full %>"],
+	"description": "<%= projectDescription %>",
+	"author": "<%= author.full %>",
 	"private": true,
 	"scripts": {
 		"start": "npm run watch",
