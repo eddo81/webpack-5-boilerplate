@@ -2,11 +2,11 @@
   "name": "webpack-5-boilerplate",
   "version": "1.0.0",
   "author": "eddo81 <eduardo_jonnerstig@live.com>",
-  "main": "",
+  "main": "webpack-5-boilerplate.js",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/eddo81/webpack-5-boilerplate.git"
+    "url": "https://github.com/eddo81/webpack-5-boilerplate"
   },
   "scripts": {
     "start": "node ./webpack-5-boilerplate.js",
