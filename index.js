@@ -243,7 +243,7 @@ const run = async () => {
 
       copyTpl(
         `./${data.folderName}/temp/src/templates/modify/_index.css`,
-        `./${data.folderName}/src/styles/index.css`,
+        `./${data.folderName}/src/styles/style.css`,
         data
       );
 
