@@ -1,6 +1,6 @@
 {
   "name": "@eddo81/webpack-5-boilerplate",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "author": "eddo81 <eduardo_jonnerstig@live.com>",
   "private": false,
   "publishConfig": {
@@ -18,8 +18,7 @@
   "bin": {
     "@eddo81/webpack-5-boilerplate": "./index.js"
   },
-  "dependencies": {},
-  "devDependencies": {
+  "dependencies": {
     "chalk": "^4.1.2",
     "cross-env": "^7.0.3",
     "ejs": "^3.1.6",
@@ -30,5 +29,6 @@
     "promisify-child-process": "^4.1.1",
     "prompts": "^2.4.1",
     "yargs": "^17.1.0"
-  }
+  },
+  "devDependencies": {}
 }
