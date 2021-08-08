@@ -1,22 +1,22 @@
 {
   "name": "@eddo81/webpack-5-boilerplate",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "author": "eddo81 <eduardo_jonnerstig@live.com>",
   "private": false,
   "publishConfig": {
     "registry": "https://registry.npmjs.org/"
   },
-  "main": "webpack-5-boilerplate.js",
+  "main": "index.js",
   "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/eddo81/webpack-5-boilerplate"
   },
   "scripts": {
-    "start": "node ./webpack-5-boilerplate.js"
+    "start": "node ./index.js"
   },
   "bin": {
-    "webpack-5-boilerplate": "./webpack-5-boilerplate"
+    "@eddo81/webpack-5-boilerplate": "./index.js"
   },
   "dependencies": {},
   "devDependencies": {
