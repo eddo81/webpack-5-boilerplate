@@ -237,13 +237,19 @@ const run = async () => {
 
       copyTpl(
         `./${data.folderName}/temp/src/templates/modify/_postcss.config.js`,
-        `./${data.folderName}/src/postcss.config.js`,
+        `./${data.folderName}/postcss.config.js`,
         data
       );
 
       copyTpl(
         `./${data.folderName}/temp/src/templates/modify/_index.css`,
         `./${data.folderName}/src/styles/index.css`,
+        data
+      );
+
+      copyTpl(
+        `./${data.folderName}/temp/src/templates/modify/_LICENCE`,
+        `./${data.folderName}/LICENCE`,
         data
       );
 
