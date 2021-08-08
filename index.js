@@ -248,8 +248,8 @@ const run = async () => {
       );
 
       copyTpl(
-        `./${data.folderName}/temp/src/templates/modify/_LICENCE`,
-        `./${data.folderName}/LICENCE`,
+        `./${data.folderName}/temp/src/templates/modify/_LICENSE`,
+        `./${data.folderName}/LICENSE`,
         data
       );
 
