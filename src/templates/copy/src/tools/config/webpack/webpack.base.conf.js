@@ -24,7 +24,7 @@ let baseConfig = {
 	resolve: {
 		extensions: ['.css', '.js', '.json'],
 		alias: {
-			assets: _CONFIG.resolve(_CONFIG.directories.entry.build)
+			wwwroot: _CONFIG.resolve(_CONFIG.directories.entry.build)
 		}
 	},
 
@@ -38,35 +38,20 @@ let baseConfig = {
 
 		{
 			test: _CONFIG.extensions.images,
-			use: {
-				loader: 'url-loader',
-				options: {
-					limit: 10000,
-					name: `${_CONFIG.directories.output.images}[name].[ext]`
-				}
-			}
+			type: 'asset/resource',
+			generator: { filename: `${_CONFIG.directories.output.images}[hash][ext][query]` }
 		},
 
 		{
 			test: _CONFIG.extensions.media,
-			use: {
-				loader: 'url-loader',
-				options: {
-					limit: 10000,
-					name: `${_CONFIG.directories.output.media}[name].[ext]`
-				}
-			}
+			type: 'asset/resource',
+			generator: { filename: `${_CONFIG.directories.output.media}[hash][ext][query]` }
 		},
 
 		{
 			test: _CONFIG.extensions.fonts,
-			use: {
-				loader: 'url-loader',
-				options: {
-					limit: 10000,
-					name: `${_CONFIG.directories.output.fonts}[name].[ext]`
-				}
-			}
+			type: 'asset/resource',
+			generator: { filename: `${_CONFIG.directories.output.fonts}[hash][ext][query]` }
 		},
 
 		{
