@@ -1,0 +1,20 @@
+@charset 'UTF-8';
+/**
+ * tailwind.css
+ * ============
+ *
+ * This file serves as the tailwind.css entry-point and should only
+ * contain @import statements and tailwind directives.
+ *
+ * @import statements must precede all other statements bar @charset.
+ *
+ */
+
+/* Base imports. */
+@tailwind base;
+
+/* Components imports. */
+@tailwind components;
+
+/* Utilities imports. */
+@tailwind utilities;

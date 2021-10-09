@@ -1,11 +1,10 @@
 @charset 'UTF-8';
-<% if(tailwind !== false) { -%>
 /**
  * style.css
  * ==========
  *
- * This file serves as the tailwind.css entry-point and should only
- * contain @import statements and tailwind directives.
+ * This file serves as the main stylesheet for the project,
+ * import custom styles here.
  *
  * @import statements must precede all other statements bar @charset.
  *
@@ -14,13 +13,3 @@
  @import 'base/_custom-properties.css';
  @import 'base/_base.css';
  @import 'utilities/_utilities.css';
-
-/* Base imports. */
-@tailwind base;
-
-/* Components imports. */
-@tailwind components;
-
-/* Utilities imports. */
-@tailwind utilities;
-<% } -%>

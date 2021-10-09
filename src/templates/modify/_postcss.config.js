@@ -1,5 +1,4 @@
 const _CONFIG = require('./src/tools/config');
-const purgecss = require('@fullhuman/postcss-purgecss');
 const autoprefixer = require('autoprefixer');
 const postcssimport = require('postcss-import');
 const postcssnested = require('postcss-nested');
@@ -16,12 +15,7 @@ module.exports = {
 		postcssnested,
 		postcsscurrentselector({ "symbol": "&" }),
     <% if(tailwind !== false) { -%>
-		tailwindcss('./src/tools/config/tailwind/tailwind.js'),<% } -%>
-		(_CONFIG.env.debug) ? undefined : purgecss({
-			content: ['./**/*.html', './**/*.json', './**/*.css' ],
-			whitelistPatternsChildren: [],
-			defaultExtractor: content => content.match(/[\w-/:]+(?<!:)/g) || []
-		}),
+		tailwindcss('./tailwind.js'),<% } -%>
 		postcsscalc,
 		(_CONFIG.env.debug) ? undefined : autoprefixer,
 		postcsspreset,

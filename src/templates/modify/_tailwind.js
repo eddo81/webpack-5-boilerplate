@@ -1,7 +1,13 @@
 module.exports = {
 	prefix: '',
 	important: false,
-	purge: false, // This is configured via postcss.config.js instead.
+  mode: 'jit',
+	purge: [
+		'./*.html',
+		'./src/**/*.json',
+		'./src/**/*.js',
+		'./src/**/*.css'
+	],
 	separator: ':',
 	theme: {
 		screens: {
