@@ -234,6 +234,12 @@ const run = async () => {
           }
         }
       );
+      
+      copyTpl(
+        `./${data.folderName}/temp/src/templates/modify/_webpack.base.conf.js`,
+        `./${data.folderName}/src/tools/config/webpack/webpack.base.conf.js`,
+        data
+      );
 
       copyTpl(
         `./${data.folderName}/temp/src/templates/modify/_postcss.config.js`,
@@ -254,15 +260,9 @@ const run = async () => {
       );
 
       if (data.tailwind !== false) {
-        const tailwindConfigDir = `./${data.folderName}/src/tools/config/tailwind`;
-
-        if (!fs.existsSync(tailwindConfigDir)){
-          fs.mkdirSync(tailwindConfigDir, { recursive: true });
-        }
-
         copyTpl(
           `./${data.folderName}/temp/src/templates/modify/_tailwind.js`,
-          `./${data.folderName}/src/tools/config/tailwind/tailwind.js`,
+          `./${data.folderName}/tailwind.js`,
           data
         );
       }
