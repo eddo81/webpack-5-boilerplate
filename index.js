@@ -265,6 +265,12 @@ const run = async () => {
           `./${data.folderName}/tailwind.js`,
           data
         );
+
+        copyTpl(
+          `./${data.folderName}/temp/src/templates/modify/_tailwind.css`,
+          `./${data.folderName}/src/styles/tailwind.css`,
+          data
+        );
       }
     })
     .catch(exception => {
