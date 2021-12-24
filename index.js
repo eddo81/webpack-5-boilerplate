@@ -51,10 +51,38 @@ const preFlightChecklist = async () => {
 };
 
 /**
- * Performns a cleanup of temporary files.
+ * Copy files to project folder.
  */
-const cleanup = async () => {
-  await fs.remove(path.join(fullProjectPath, "temp"));
+const copyFiles = () => {
+  const folders = {
+    modify: path.resolve(__dirname, 'src/templates/modify'),
+    copy: path.resolve(__dirname, 'src/templates/copy')
+  };
+  
+  let files = glob.sync(`${folders.copy}/**/*.*`);
+
+  files.forEach(templateFile => {
+    let toFile = (templateFile.endsWith('.ejs') === true) ? templateFile.substring(0, templateFile.length - 4) : templateFile;
+    copyTpl(templateFile, toFile, data);
+  });
+
+  fs.copySync(`${folders.copy}`, `./${data.folderName}`, {
+    filter: n => { return !n.endsWith('.ejs'); }
+  });
+  
+  copyTpl(`${folders.modify}/_webpack.base.conf.js`, `./${data.folderName}/src/tools/config/webpack/webpack.base.conf.js`, data);
+
+  copyTpl(`${folders.modify}/_postcss.config.js`, `./${data.folderName}/postcss.config.js`, data);
+
+  copyTpl(`${folders.modify}/_index.css`, `./${data.folderName}/src/styles/style.css`, data);
+
+  copyTpl(`${folders.modify}/_LICENSE`, `./${data.folderName}/LICENSE`, data);
+
+  if (data.tailwind !== false) {
+    console.log(data.tailwind);
+    copyTpl(`${folders.modify}/_tailwind.js`, `./${data.folderName}/tailwind.js`, data);
+    copyTpl(`${folders.modify}/_tailwind.css`, `./${data.folderName}/src/styles/tailwind.css`, data);
+  }
 };
 
 const run = async () => {
@@ -191,112 +219,23 @@ const run = async () => {
   }
 
   // -----------------------------
-  //  2. Clone repo
+  //  2. Copy files
   // -----------------------------
 
-  const gitUrl = `https://github.com/eddo81/webpack-5-boilerplate.git`;
-
-  const spinnerClone = ora(`${counter}. Cloning the github repo`).start();
-  await exec(`git clone ${gitUrl} ${data.folderName}/temp`)
-    .then(() => {
-      spinnerClone.succeed();
-      counter += 1;
-    })
-    .catch(exception => {
-      spinnerClone.fail();
-      write.error(exception);
-      process.exit();
-    });
+  const spinnerCopy = ora(`${counter}. Generating files`).start();
+  
+  try {
+    copyFiles(data);
+    spinnerCopy.succeed();
+    counter += 1;
+  } catch {
+    spinnerCopy.fail();
+    write.error(exception);
+    process.exit();
+  }
 
   // -----------------------------
-  //  3. Copy files
-  // -----------------------------
-
-  const spinnerCopy = ora(`${counter}. Copying files from temp folder`).start();
-  await exec(`cd "${data.folderName}"`)
-    .then(() => {
-      spinnerCopy.succeed();
-      counter += 1;
-
-      let files = glob.sync(`./${data.folderName}/temp/src/templates/copy/**/*.*`);
-
-      files.forEach(templateFile => {
-        let toFile = (templateFile.endsWith('.ejs') === true) ? templateFile.substring(0, templateFile.length - 4) : templateFile;
-        copyTpl(templateFile, toFile, data);
-      });
-
-      fs.copySync(
-        `./${data.folderName}/temp/src/templates/copy`,
-        `./${data.folderName}`,
-        {
-          filter: n => {
-            return !n.endsWith('.ejs');
-          }
-        }
-      );
-      
-      copyTpl(
-        `./${data.folderName}/temp/src/templates/modify/_webpack.base.conf.js`,
-        `./${data.folderName}/src/tools/config/webpack/webpack.base.conf.js`,
-        data
-      );
-
-      copyTpl(
-        `./${data.folderName}/temp/src/templates/modify/_postcss.config.js`,
-        `./${data.folderName}/postcss.config.js`,
-        data
-      );
-
-      copyTpl(
-        `./${data.folderName}/temp/src/templates/modify/_index.css`,
-        `./${data.folderName}/src/styles/style.css`,
-        data
-      );
-
-      copyTpl(
-        `./${data.folderName}/temp/src/templates/modify/_LICENSE`,
-        `./${data.folderName}/LICENSE`,
-        data
-      );
-
-      if (data.tailwind !== false) {
-        copyTpl(
-          `./${data.folderName}/temp/src/templates/modify/_tailwind.js`,
-          `./${data.folderName}/tailwind.js`,
-          data
-        );
-
-        copyTpl(
-          `./${data.folderName}/temp/src/templates/modify/_tailwind.css`,
-          `./${data.folderName}/src/styles/tailwind.css`,
-          data
-        );
-      }
-    })
-    .catch(exception => {
-      spinnerCopy.fail();
-      write.error(exception);
-      process.exit();
-    });
-
-  // -----------------------------
-  //  4. Cleanup
-  // -----------------------------
-
-  const spinnerCleanup = ora(`${counter}. Cleaning project folder`).start();
-  await cleanup()
-    .then(() => {
-      spinnerCleanup.succeed();
-      counter += 1;
-    })
-    .catch(exception => {
-      spinnerCleanup.fail();
-      write.error(exception);
-      process.exit();
-    });
-
-  // -----------------------------
-  //  5. Install node dependencies
+  //  3. Install node dependencies
   // -----------------------------
 
   if (args.install) {
@@ -314,7 +253,7 @@ const run = async () => {
   }
 
   // -----------------------------
-  //  6. Init git repo
+  //  4. Init git repo
   // -----------------------------
 
   if (args.git) {
@@ -332,7 +271,7 @@ const run = async () => {
   }
 
   // -----------------------------
-  //  9. Success
+  //  5. Success
   // -----------------------------
   write.outro(data.folderName, args.install);
 };
