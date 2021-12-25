@@ -218,7 +218,7 @@ const run = async () => {
       spinnerCopy.succeed();
       counter += 1;
 
-      let files = glob.sync(`./${data.folderName}/temp/src/templates/copy/**/*.*`);
+      let files = glob.sync(`./${data.folderName}/temp/src/templates/copy/core/**/*.*`);
 
       files.forEach(templateFile => {
         let toFile = (templateFile.endsWith('.ejs') === true) ? templateFile.substring(0, templateFile.length - 4) : templateFile;
@@ -226,7 +226,7 @@ const run = async () => {
       });
 
       fs.copySync(
-        `./${data.folderName}/temp/src/templates/copy`,
+        `./${data.folderName}/temp/src/templates/copy/core`,
         `./${data.folderName}`,
         {
           filter: n => {
@@ -234,7 +234,21 @@ const run = async () => {
           }
         }
       );
-      
+
+      if (data.tailwind !== false) {
+        copyTpl(
+          `./${data.folderName}/temp/src/templates/copy/tailwind/tailwind.js`,
+          `./${data.folderName}/tailwind.js`,
+          data
+        );
+
+        copyTpl(
+          `./${data.folderName}/temp/src/templates/copy/tailwind/tailwind.css`,
+          `./${data.folderName}/src/styles/tailwind.css`,
+          data
+        );
+      }
+
       copyTpl(
         `./${data.folderName}/temp/src/templates/modify/_webpack.base.conf.js`,
         `./${data.folderName}/src/tools/config/webpack/webpack.base.conf.js`,
@@ -259,19 +273,18 @@ const run = async () => {
         data
       );
 
-      if (data.tailwind !== false) {
-        copyTpl(
-          `./${data.folderName}/temp/src/templates/modify/_tailwind.js`,
-          `./${data.folderName}/tailwind.js`,
-          data
-        );
+      copyTpl(
+        `./${data.folderName}/temp/src/templates/modify/_README.md`,
+        `./${data.folderName}/README.md`,
+        data
+      );
 
-        copyTpl(
-          `./${data.folderName}/temp/src/templates/modify/_tailwind.css`,
-          `./${data.folderName}/src/styles/tailwind.css`,
-          data
-        );
-      }
+      copyTpl(
+        `./${data.folderName}/temp/src/templates/modify/_package.json`,
+        `./${data.folderName}/package.json`,
+        data
+      );
+
     })
     .catch(exception => {
       spinnerCopy.fail();

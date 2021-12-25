@@ -14,7 +14,7 @@ let baseConfig = {
 			_CONFIG.resolve(`${_CONFIG.directories.entry.scripts}/main.js`),
 			<% if(tailwind !== false) { -%>
 			_CONFIG.resolve(`${_CONFIG.directories.entry.styles}/tailwind.css`),<% } -%>
-			_CONFIG.resolve(`${_CONFIG.directories.entry.styles}/style.css`)
+			_CONFIG.resolve(`${_CONFIG.directories.entry.styles}/main.css`)
 		]
 	},
 
