@@ -262,12 +262,6 @@ const run = async () => {
       );
 
       copyTpl(
-        `./${data.folderName}/temp/src/templates/modify/_index.css`,
-        `./${data.folderName}/src/styles/style.css`,
-        data
-      );
-
-      copyTpl(
         `./${data.folderName}/temp/src/templates/modify/_LICENSE`,
         `./${data.folderName}/LICENSE`,
         data
