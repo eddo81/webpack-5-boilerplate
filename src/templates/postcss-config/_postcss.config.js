@@ -14,8 +14,7 @@ module.exports = {
 		postcssimport({ path: ["src/styles"] }),
 		postcssnested,
 		postcsscurrentselector({ "symbol": "&" }),
-    <% if(tailwind !== false) { -%>
-		tailwindcss('./tailwind.js'),<% } -%>
+    <% if(tailwind !== false) { -%>tailwindcss('./tailwind.js'),<% } -%>
 		postcsscalc,
 		(_CONFIG.env.debug) ? undefined : autoprefixer,
 		postcsspreset,

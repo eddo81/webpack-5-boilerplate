@@ -1,347 +1,335 @@
 #!/usr/bin/env node
 
-/**
- * Run the entire program.
- */
 const fs = require("fs-extra");
 const path = require("path");
 const ora = require("ora");
 const prompts = require("prompts");
 const { exec } = require("promisify-child-process");
-const write = require("./src/utils/write.js");
 const format = require("./src/utils/format.js");
-const copyTpl = require("./src/utils/copyTemplateFile.js");
 const argv = require("yargs").argv;
-const glob = require("glob");
-
+const chalk = require("chalk");
+const ejs = require("ejs");
 let args = {
-  skip: argv.skip || argv.s ? true : false,
+  verbose: argv.verbose || argv.v ? true : false,
   install: argv.install || argv.i ? true : false,
   git: argv.git || argv.g ? true : false,
 };
 
 let fullProjectPath = "";
-let counter = 1;
+let spinner;
 let data;
-let summery;
+
+/**
+ * Output intro message.
+ */
+const outputIntroMessage = () => {
+  process.stdout.write("\u001b[2J\u001b[0;0H");
+  console.log(chalk.cyan("====================="));
+  console.log(chalk.cyan("Webpack-5-Boilerplate"));
+  console.log(chalk.cyan("====================="));
+  console.log("");
+  console.log("You're about to run the setup script for your project in this directory:");
+  console.log("");
+  console.log(chalk.bgGreen(chalk.black(` ${process.cwd()} `)));
+  console.log("");
+}
+
+/**
+ * Output outro message.
+ */
+const outputOutroMessage = (folderName, doInstall, createFolder) => {
+  console.log("");
+  console.log(`Your project is now ready!`);
+  console.log("");
+
+  if (doInstall === true && createFolder === true) {
+    console.log(`Please ${chalk.green("cd")} into the ${chalk.green(`${folderName}`)} folder and run ${chalk.green("npm start")} to start developing.`);
+  }
+
+  if (doInstall === true && createFolder === false) {
+    console.log(`Please run ${chalk.green("npm start")} in the current directory to start developing.`);
+  }
+
+  if (doInstall === false && createFolder === true) {
+    console.log(`Please ${chalk.green("cd")} into the ${chalk.green(`${folderName}`)} folder and run ${chalk.green("npm install")}.\nAfter the required dependencies have been installed run ${chalk.green("npm start")} to start developing.`);
+  }
+
+  if (doInstall === false && createFolder === false) {
+    console.log(`Please run ${chalk.green("npm install")} in the current directory.\nAfter the required dependencies have been installed run ${chalk.green("npm start")} to start developing.`);
+  }
+
+  console.log("");
+}
+
+const copyTpl = (fromFile, toFile, data) => {
+  const encoding = "utf-8";
+  const template = fs.readFileSync(`${fromFile}`, encoding);
+  const file = ejs.render(template, data);
+  fs.writeFileSync(`${toFile}`, file, encoding);
+};
+
+/**
+ * Output exit message and exit process.
+ */
+const onCancel = (prompt) => {
+  console.log("");
+  console.log("Exiting script...");
+  process.exit();
+};
+
+/**
+ * Output error exception and exit process.
+ */
+const onError = (exception, spinner) => {
+  if(spinner) {
+    spinner.fail();
+  }
+  console.log(`${chalk.bgRed("Error")}${chalk.red(" - ")}${exception}`);
+  process.exit();
+};
 
 /**
  * Runs before the setup for some sanity checks.
  */
 const preFlightChecklist = async () => {
 
-  if (fs.existsSync(fullProjectPath) === true) {
-    throw new Error(
-      `A folder with the name "${data.folderName}" already exists at this location. Please select a different name for your project and try again.`
-    );
+  if (data.createFolder && fs.existsSync(fullProjectPath) === true) {
+    throw new Error(`A folder with the name "${data.folderName}" already exists at this location. Please select a different name for your project and try again.`);
   }
 
   if (args.git) {
     // WARNING - Check if git is installed.
     await exec("git --version")
-      .then(() => {
-        // all good.
-      })
-      .catch(() => {
-        throw new Error(
-          'Unable to check Git\'s version ("git --version"), please make sure Git is installed and globally available before running this script.'
-        );
-      });
+    .then(() => {
+      // all good.
+    })
+    .catch(() => {
+      throw new Error('Unable to check Git\'s version ("git --version"), please make sure Git is installed and globally available before running this script.');
+    });
   }
 };
 
 /**
- * Performns a cleanup of temporary files.
+ * Run the entire program.
  */
-const cleanup = async () => {
-  await fs.remove(path.join(fullProjectPath, "temp"));
-};
-
 const run = async () => {
   data = { args: args };
 
-  let confirmed = false;
+  outputIntroMessage();
 
-  write.intro();
+  // Prompt user for all user data.
+  const answers = await prompts(
+    [
+      {
+        type: "text",
+        name: "projectName",
+        message: `Please enter the project name:`,
+        validate: value =>
+          value.length < 2
+            ? `The project name is required and must contain at least 2 characters.`
+            : true
+      },
 
-  const onCancel = prompt => {
-    console.log("");
-    console.log("Exiting script...");
-    process.exit();
+      {
+        type:  (args.verbose === true) ? "text" : null,
+        name: "authorName",
+        message: `Please enter the name of the project author:`,
+      },
+
+      {
+        type: (args.verbose === true) ? "text" : null,
+        name: "authorEmail",
+        message: `Please enter the author email:`,
+        validate: (value) => {
+          if (value === '') {
+            return true;
+          } else {
+            return (/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(value) === false) ? `You have entered an invalid email address!` : true
+          }
+        }
+      },
+
+      {
+        type:  (args.verbose === true) ? "text" : null,
+        name: "projectDescription",
+        message: `Please enter a project description:`,
+      },
+
+      {
+        type: "select",
+        name: "createProjectFolder",
+        message: "Do you wish to create a folder for this project?",
+        choices: [
+          { 
+            title: "No", 
+            value: false 
+          },
+          { 
+            title: "Yes", 
+            value: true,
+						selected: true
+          }
+        ],
+        initial: 1
+      },
+
+      {
+        type: prev => (prev === true ? "text" : null),
+        name: "folderName",
+        message: "Please enter the name of the project folder:",
+        initial: (prev, values) => format.dash(values.projectName),
+        validate: (value) => {
+          if(value.trim().length < 1) {
+            return 'A folder name is required and cannot be blank.'; 
+          } else {
+            const pattern = /^[^\s^\x00-\x1f\\?*:"";<>|\/.][^\x00-\x1f\\?*:"";<>|\/]*[^\s^\x00-\x1f\\?*:"";<>|\/.]+$/g;
+            return (pattern.test(value) === false) ? `You have entered an invalid folder name!` : true;
+          }
+        }
+      },
+
+      {
+        type: 'multiselect',
+        name: 'files',
+        message: 'Do you wish to include any of the following files/features:',
+        choices: [
+          { 
+            title: 'Tailwind.css', 
+            value: 'tailwind',
+            selected: true 
+          },
+          { 
+            title: 'README.md', 
+            value: 'readme',
+            selected: true 
+          },
+          { 
+            title: 'LICENSE', 
+            value: 'license',
+            selected: true 
+          },
+          { 
+            title: 'EditorConfig',
+            value: 'editorconfig',
+            selected: true 
+          }
+        ],
+        instructions: false,
+        hint: "- Space to select. Return to submit."
+      }
+
+    ],
+    { onCancel }
+  );
+
+  data.author = {
+    name: answers.authorName ? answers.authorName : '',
+    email: answers.authorEmail ? answers.authorEmail : '',
+    full: answers.authorName ? `${answers.authorName}${answers.authorEmail ? ' <' + answers.authorEmail + '>' : ''}` : ''
   };
 
-  do {
-    // Prompt user for all user data.
-    const answers = await prompts(
-      [
-        {
-          type: "text",
-          name: "projectName",
-          message: `Please enter the project name:`,
-          validate: value =>
-            value.length < 2
-              ? `The project name is required and must contain at least 2 characters.`
-              : true
-        },
+  data.projectName        = answers.projectName;
+  data.projectDescription = answers.projectDescription || '';
+  data.useFolder          = answers.createProjectFolder;
+  data.folderName         = data.useFolder ? answers.folderName : '';
+  data.packageName        = format.underscore(data.projectName);
+  data.tailwind           = answers.files.includes('tailwind');
+  data.readme             = answers.files.includes('readme');
+  data.license            = answers.files.includes('license');
+  data.editorconfig       = answers.files.includes('editorconfig');
+  data.year               = new Date().getFullYear();
 
-        {
-          type:  (args.skip !== true) ? "text" : null,
-          name: "authorName",
-          message: `Please enter the name of the project author:`,
-        },
+  // Globally save the package (because it's also our folder name)
+  fullProjectPath = path.join(process.cwd(), data.folderName);
 
-        {
-          type: (args.skip !== true) ? "text" : null,
-          name: "authorEmail",
-          message: `Please enter the author email:`,
-          validate: (value) => {
-            if (value === '') {
-              return true;
-            } else {
-              return (/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(value) === false) ? `You have entered an invalid email address!` : true
-            }
-          }
-        },
-
-        {
-          type:  (args.skip !== true) ? "text" : null,
-          name: "projectDescription",
-          message: `Please enter a project description:`,
-        },
-
-        {
-          type: "select",
-          name: "useTailwind",
-          message: "Do you wish to include the Tailwind.css library in this project:",
-          choices: [
-            { title: "No", value: false, selected: true },
-            { title: "Yes", value: true }
-          ],
-          initial: 1
-        }
-      ],
-      { onCancel }
-    );
-
-    data.author = {
-      name: answers.authorName ? answers.authorName : '',
-      email: answers.authorEmail ? answers.authorEmail : '',
-      full: answers.authorName ? `${answers.authorName}${answers.authorEmail ? ' <' + answers.authorEmail + '>' : ''}${answers.authorUrl ? ' (' + answers.authorUrl + ')' : ''}` : ''
-    };
-    data.projectName        = answers.projectName;
-    data.projectDescription = answers.projectDescription || '';
-    data.folderName         = format.dash(data.projectName);
-    data.packageName        = format.underscore(data.projectName);
-    data.tailwind           = answers.useTailwind === true;
-    data.year               = new Date().getFullYear();
-
-    // Globally save the package (because it's also our folder name)
-    fullProjectPath = path.join(process.cwd(), data.folderName);
-
-    summery = {
-      "Project name": data.projectName,
-      "Project features": answers.features,
-    };
-
-    // Display summery
-    write.summary(summery);
-
-    const confirm = await prompts(
-      {
-        type: "toggle",
-        name: "continue",
-        message: "Confirm settings to continue...",
-        initial: true,
-        active: "confirm",
-        inactive: "cancel"
-      },
-      { onCancel }
-    );
-
-    confirmed = confirm.continue;
-
-    if (confirmed !== true) {
-      write.intro();
-    }
-  } while (confirmed !== true);
-
-  write.letsGo();
+  console.log("");
+  console.log("Let's get started, it might take a while...");
+  console.log("");
 
   // -----------------------------
   //  1. Preflight checklist
   // -----------------------------
 
-  if (args.skip) {
-    ora(`${counter}. Skipping Pre-flight checklist`)
-      .start()
-      .succeed();
-    counter += 1;
-  } else {
-    const spinnerChecklist = ora(`${counter}. Pre-flight checklist`).start();
-    await preFlightChecklist()
-      .then(() => {
-        spinnerChecklist.succeed();
-        counter += 1;
-      })
-      .catch(exception => {
-        spinnerChecklist.fail();
-        write.error(exception);
-        process.exit();
-      });
+  spinner = ora(`1. Pre-flight checklist`).start();
+  await preFlightChecklist()
+    .then(() => { spinner.succeed(); })
+    .catch(exception => { onError(exception, spinner); });
+  
+  // -----------------------------
+  //  2. Copy files
+  // -----------------------------
+
+  spinner = ora(`2. Generating project files`).start();
+  try {
+    const folders = {
+      input: {
+        'core': path.resolve(__dirname, 'src/templates/core'),
+        'license': path.resolve(__dirname, 'src/templates/license'),
+        'package-json': path.resolve(__dirname, 'src/templates/package-json'),
+        'postcss-config': path.resolve(__dirname, 'src/templates/postcss-config'),
+        'tailwind': path.resolve(__dirname, 'src/templates/tailwind'),
+        'readme': path.resolve(__dirname, 'src/templates/readme'),
+        'editor-config': path.resolve(__dirname, 'src/templates/editor-config'),
+        'webpack-config': path.resolve(__dirname, 'src/templates/webpack-config')
+      },
+      output: `./${data.folderName}`
+    };
+  
+    fs.copySync(folders.input['core'], folders.output);
+
+    if (data.editorconfig === true) {
+      fs.copySync(folders.input['editor-config'], folders.output);
+    }
+
+    if (data.license === true) {
+      copyTpl(`${folders.input['license']}/_LICENSE`, `${folders.output}/LICENSE`, data);
+    }
+
+    if (data.readme === true) {
+      copyTpl(`${folders.input['readme']}/_README.md`, `${folders.output}/README.md`, data);
+    }
+
+    if (data.tailwind === true) {
+      copyTpl(`${folders.input['tailwind']}/tailwind.js`, `${folders.output}/tailwind.js`, data);
+      copyTpl(`${folders.input['tailwind']}/tailwind.css`, `${folders.output}/src/styles/tailwind.css`, data);
+    }
+  
+    copyTpl(`${folders.input['webpack-config']}/_webpack.base.conf.js`, `${folders.output}/src/tools/config/webpack/webpack.base.conf.js`, data);
+    copyTpl(`${folders.input['postcss-config']}/_postcss.config.js`, `${folders.output}/postcss.config.js`, data);
+    copyTpl(`${folders.input['package-json']}/_package.json`, `${folders.output}/package.json`, data);
+
+    spinner.succeed();
+  } catch(exception) { 
+    onError(exception, spinner); 
   }
 
   // -----------------------------
-  //  2. Clone repo
-  // -----------------------------
-
-  const gitUrl = `https://github.com/eddo81/webpack-5-boilerplate.git`;
-
-  const spinnerClone = ora(`${counter}. Cloning the github repo`).start();
-  await exec(`git clone ${gitUrl} ${data.folderName}/temp`)
-    .then(() => {
-      spinnerClone.succeed();
-      counter += 1;
-    })
-    .catch(exception => {
-      spinnerClone.fail();
-      write.error(exception);
-      process.exit();
-    });
-
-  // -----------------------------
-  //  3. Copy files
-  // -----------------------------
-
-  const spinnerCopy = ora(`${counter}. Copying files from temp folder`).start();
-  await exec(`cd "${data.folderName}"`)
-    .then(() => {
-      spinnerCopy.succeed();
-      counter += 1;
-
-      let files = glob.sync(`./${data.folderName}/temp/src/templates/copy/core/**/*.*`);
-
-      files.forEach(templateFile => {
-        let toFile = (templateFile.endsWith('.ejs') === true) ? templateFile.substring(0, templateFile.length - 4) : templateFile;
-        copyTpl(templateFile, toFile, data);
-      });
-
-      fs.copySync(
-        `./${data.folderName}/temp/src/templates/copy/core`,
-        `./${data.folderName}`,
-        {
-          filter: n => {
-            return !n.endsWith('.ejs');
-          }
-        }
-      );
-
-      if (data.tailwind !== false) {
-        copyTpl(
-          `./${data.folderName}/temp/src/templates/copy/tailwind/tailwind.js`,
-          `./${data.folderName}/tailwind.js`,
-          data
-        );
-
-        copyTpl(
-          `./${data.folderName}/temp/src/templates/copy/tailwind/tailwind.css`,
-          `./${data.folderName}/src/styles/tailwind.css`,
-          data
-        );
-      }
-
-      copyTpl(
-        `./${data.folderName}/temp/src/templates/modify/_webpack.base.conf.js`,
-        `./${data.folderName}/src/tools/config/webpack/webpack.base.conf.js`,
-        data
-      );
-
-      copyTpl(
-        `./${data.folderName}/temp/src/templates/modify/_postcss.config.js`,
-        `./${data.folderName}/postcss.config.js`,
-        data
-      );
-
-      copyTpl(
-        `./${data.folderName}/temp/src/templates/modify/_LICENSE`,
-        `./${data.folderName}/LICENSE`,
-        data
-      );
-
-      copyTpl(
-        `./${data.folderName}/temp/src/templates/modify/_README.md`,
-        `./${data.folderName}/README.md`,
-        data
-      );
-
-      copyTpl(
-        `./${data.folderName}/temp/src/templates/modify/_package.json`,
-        `./${data.folderName}/package.json`,
-        data
-      );
-
-    })
-    .catch(exception => {
-      spinnerCopy.fail();
-      write.error(exception);
-      process.exit();
-    });
-
-  // -----------------------------
-  //  4. Cleanup
-  // -----------------------------
-
-  const spinnerCleanup = ora(`${counter}. Cleaning project folder`).start();
-  await cleanup()
-    .then(() => {
-      spinnerCleanup.succeed();
-      counter += 1;
-    })
-    .catch(exception => {
-      spinnerCleanup.fail();
-      write.error(exception);
-      process.exit();
-    });
-
-  // -----------------------------
-  //  5. Install node dependencies
+  //  3. Install node dependencies
   // -----------------------------
 
   if (args.install) {
-    const spinnerNode = ora(`${counter}. Installing NPM dependencies`).start();
+    spinner = ora(`3. Installing NPM dependencies`).start();
     await exec(`cd "${fullProjectPath}" && npm install`)
-      .then(() => {
-        spinnerNode.succeed();
-        counter += 1;
-      })
-      .catch(exception => {
-        spinnerNode.fail();
-        write.error(exception);
-        process.exit();
-      });
+      .then(() => { spinner.succeed(); })
+      .catch(exception => { onError(exception, spinner); });
   }
 
   // -----------------------------
-  //  6. Init git repo
+  //  4. Init git repo
   // -----------------------------
 
   if (args.git) {
-    const spinnerInit = ora(`${counter}. Initializing git repo`).start();
+    spinner = ora(`4. Initializing git repo`).start();
     await exec(`cd "${fullProjectPath}" && git init`)
-      .then(() => {
-        spinnerInit.succeed();
-        counter += 1;
-      })
-      .catch(exception => {
-        spinnerInit.fail();
-        write.error(exception);
-        process.exit();
-      });
+      .then(() => { spinner.succeed(); })
+      .catch(exception => { onError(exception, spinner); });
   }
 
   // -----------------------------
-  //  9. Success
+  //  5. Success
   // -----------------------------
-  write.outro(data.folderName, args.install);
+
+  outputOutroMessage(data.folderName, args.install, data.createFolder);
 };
 
 try {

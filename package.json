@@ -1,6 +1,6 @@
 {
   "name": "@eddo81/webpack-5-boilerplate",
-  "version": "1.2.7",
+  "version": "1.2.8",
   "author": "eddo81 <eduardo_jonnerstig@live.com>",
   "private": false,
   "publishConfig": {
@@ -22,9 +22,7 @@
     "chalk": "^4.1.2",
     "cross-env": "^7.0.3",
     "ejs": "^3.1.6",
-    "figlet": "^1.5.0",
     "fs-extra": "^10.0.0",
-    "glob": "^7.1.7",
     "ora": "^5.4.1",
     "promisify-child-process": "^4.1.1",
     "prompts": "^2.4.1",
