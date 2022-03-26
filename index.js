@@ -190,27 +190,12 @@ const run = async () => {
 
       {
         type: 'multiselect',
-        name: 'files',
-        message: 'Do you wish to include any of the following files/features:',
+        name: 'dependencies',
+        message: 'Do you wish to include any of the following dependencies?',
         choices: [
           { 
             title: 'Tailwind.css', 
             value: 'tailwind',
-            selected: true 
-          },
-          { 
-            title: 'README.md', 
-            value: 'readme',
-            selected: true 
-          },
-          { 
-            title: 'LICENSE', 
-            value: 'license',
-            selected: true 
-          },
-          { 
-            title: 'EditorConfig',
-            value: 'editorconfig',
             selected: true 
           }
         ],
@@ -233,10 +218,7 @@ const run = async () => {
   data.useFolder          = answers.createProjectFolder;
   data.folderName         = data.useFolder ? answers.folderName : '';
   data.packageName        = format.underscore(data.projectName);
-  data.tailwind           = answers.files.includes('tailwind');
-  data.readme             = answers.files.includes('readme');
-  data.license            = answers.files.includes('license');
-  data.editorconfig       = answers.files.includes('editorconfig');
+  data.tailwind           = answers.dependencies.includes('tailwind');
   data.year               = new Date().getFullYear();
 
   // Globally save the package (because it's also our folder name)
@@ -264,30 +246,15 @@ const run = async () => {
     const folders = {
       input: {
         'core': path.resolve(__dirname, 'src/templates/core'),
-        'license': path.resolve(__dirname, 'src/templates/license'),
         'package-json': path.resolve(__dirname, 'src/templates/package-json'),
         'postcss-config': path.resolve(__dirname, 'src/templates/postcss-config'),
         'tailwind': path.resolve(__dirname, 'src/templates/tailwind'),
-        'readme': path.resolve(__dirname, 'src/templates/readme'),
-        'editor-config': path.resolve(__dirname, 'src/templates/editor-config'),
         'webpack-config': path.resolve(__dirname, 'src/templates/webpack-config')
       },
       output: `./${data.folderName}`
     };
   
     fs.copySync(folders.input['core'], folders.output);
-
-    if (data.editorconfig === true) {
-      fs.copySync(folders.input['editor-config'], folders.output);
-    }
-
-    if (data.license === true) {
-      copyTpl(`${folders.input['license']}/_LICENSE`, `${folders.output}/LICENSE`, data);
-    }
-
-    if (data.readme === true) {
-      copyTpl(`${folders.input['readme']}/_README.md`, `${folders.output}/README.md`, data);
-    }
 
     if (data.tailwind === true) {
       copyTpl(`${folders.input['tailwind']}/tailwind.js`, `${folders.output}/tailwind.js`, data);

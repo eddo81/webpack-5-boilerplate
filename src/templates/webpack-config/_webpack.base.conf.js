@@ -88,9 +88,7 @@ let baseConfig = {
 		}),
 
 		new MiniCssExtractPlugin({
-			filename: `${_CONFIG.directories.output.css}[name]${
-				_CONFIG.env.debug ? '' : '.[contenthash]'
-				}.css`,
+			filename: `${_CONFIG.directories.output.css}[name]${_CONFIG.env.debug ? '' : '.[contenthash]'}.css`,
 			chunkFilename: '[id].[contenthash].css'
 		}),
 
