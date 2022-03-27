@@ -1,0 +1,14 @@
+/**
+ * Main method, bootstraps the <%= entrypoint %> JavaScript entry point.
+ *
+ * @return {void}
+ */
+function <%= entrypoint %>() {
+
+}
+
+if(/complete|interactive|loaded/.test(document.readyState)) {
+	<%= entrypoint %>();
+} else {
+	document.addEventListener('DOMContentLoaded', <%= entrypoint %>, false);
+}

@@ -9,13 +9,12 @@ console.log(`building for ${_CONFIG.env.mode}...\n`);
 let baseConfig = {
 	mode: JSON.parse(_CONFIG.env.mode),
 
-	entry: {
-		main: [
-			_CONFIG.resolve(`${_CONFIG.directories.entry.scripts}/main.js`),
-			<% if(tailwind !== false) { -%>
-			_CONFIG.resolve(`${_CONFIG.directories.entry.styles}/tailwind.css`),<% } -%>
-			_CONFIG.resolve(`${_CONFIG.directories.entry.styles}/main.css`)
-		]
+	entry: {<% args.entrypoints.forEach( (entrypoint, index) => { %>
+    <%= entrypoint %>: [
+      _CONFIG.resolve(`${_CONFIG.directories.entry.scripts}/<%= entrypoint %>.js`),<%= "\n" %><% if(tailwind !== false && index === 0) { -%>
+      _CONFIG.resolve(`${_CONFIG.directories.entry.styles}/tailwind.css`),<%= "\n" %><% } -%>
+      _CONFIG.resolve(`${_CONFIG.directories.entry.styles}/<%= entrypoint %>.css`)
+    ],<% }); %>
 	},
 
 	output: {

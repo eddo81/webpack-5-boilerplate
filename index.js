@@ -6,17 +6,27 @@ const ora = require("ora");
 const prompts = require("prompts");
 const { exec } = require("promisify-child-process");
 const format = require("./src/utils/format.js");
-const argv = require("yargs").argv;
+const yargs = require("yargs");
 const chalk = require("chalk");
 const ejs = require("ejs");
 let args = {
-  verbose: argv.verbose || argv.v ? true : false,
-  install: argv.install || argv.i ? true : false,
-  git: argv.git || argv.g ? true : false,
+  verbose: yargs.argv.verbose ? true : false,
+  install: yargs.argv.install ? true : false,
+  extract: yargs.argv.extract ? true : false,
+  entrypoints: ['main'],
+  git: yargs.argv.git ? true : false,
 };
+
+if(yargs.array('entrypoints').argv?.entrypoints?.length > 0) {
+  args.entrypoints = yargs.array('entrypoints').argv.entrypoints.map((entrypoint) => {
+    entrypoint = entrypoint.replace(/[^A-Za-z\s]/g, ' ').trim();
+    return format.dash(entrypoint); 
+  });
+}
 
 let fullProjectPath = "";
 let spinner;
+let counter = 1;
 let data;
 
 /**
@@ -37,24 +47,24 @@ const outputIntroMessage = () => {
 /**
  * Output outro message.
  */
-const outputOutroMessage = (folderName, doInstall, createFolder) => {
+const outputOutroMessage = (data) => {
   console.log("");
   console.log(`Your project is now ready!`);
   console.log("");
 
-  if (doInstall === true && createFolder === true) {
-    console.log(`Please ${chalk.green("cd")} into the ${chalk.green(`${folderName}`)} folder and run ${chalk.green("npm start")} to start developing.`);
+  if (data.args.install === true && data.args.extract === false) {
+    console.log(`Please ${chalk.green("cd")} into the ${chalk.green(`${data.folderName}`)} folder and run ${chalk.green("npm start")} to start developing.`);
   }
 
-  if (doInstall === true && createFolder === false) {
+  if (data.args.install === true && data.args.extract === true) {
     console.log(`Please run ${chalk.green("npm start")} in the current directory to start developing.`);
   }
 
-  if (doInstall === false && createFolder === true) {
-    console.log(`Please ${chalk.green("cd")} into the ${chalk.green(`${folderName}`)} folder and run ${chalk.green("npm install")}.\nAfter the required dependencies have been installed run ${chalk.green("npm start")} to start developing.`);
+  if (data.args.install === false && data.args.extract === false) {
+    console.log(`Please ${chalk.green("cd")} into the ${chalk.green(`${data.folderName}`)} folder and run ${chalk.green("npm install")}.\nAfter the required dependencies have been installed run ${chalk.green("npm start")} to start developing.`);
   }
 
-  if (doInstall === false && createFolder === false) {
+  if (data.args.install === false && data.args.extract === true) {
     console.log(`Please run ${chalk.green("npm install")} in the current directory.\nAfter the required dependencies have been installed run ${chalk.green("npm start")} to start developing.`);
   }
 
@@ -124,20 +134,33 @@ const run = async () => {
         type: "text",
         name: "projectName",
         message: `Please enter the project name:`,
-        validate: value =>
-          value.length < 2
-            ? `The project name is required and must contain at least 2 characters.`
-            : true
+        validate: (value) => {
+          const pattern = /^[^\s^\x00-\x1f\\?*:"";<>|\/.][^\x00-\x1f\\?*:"";<>|\/]*[^\s^\x00-\x1f\\?*:"";<>|\/.]+$/g;
+
+          if(value.trim().length < 1) {
+            return `The project name is required and cannot be blank.`; 
+          }
+
+          if(value.length < 2) {
+            return `The project name must contain at least 2 characters.`;
+          }
+
+          if(pattern.test(value) === false && data.args.extract === false) {
+            return `The project name is invald! Ensure that the project name is also a valid folder name.`;
+          }
+
+          return true;
+        }
       },
 
       {
-        type:  (args.verbose === true) ? "text" : null,
+        type:  (data.args.verbose === true) ? "text" : null,
         name: "authorName",
         message: `Please enter the name of the project author:`,
       },
 
       {
-        type: (args.verbose === true) ? "text" : null,
+        type: (data.args.verbose === true) ? "text" : null,
         name: "authorEmail",
         message: `Please enter the author email:`,
         validate: (value) => {
@@ -150,48 +173,15 @@ const run = async () => {
       },
 
       {
-        type:  (args.verbose === true) ? "text" : null,
+        type:  (data.args.verbose === true) ? "text" : null,
         name: "projectDescription",
         message: `Please enter a project description:`,
       },
 
       {
-        type: "select",
-        name: "createProjectFolder",
-        message: "Do you wish to create a folder for this project?",
-        choices: [
-          { 
-            title: "No", 
-            value: false 
-          },
-          { 
-            title: "Yes", 
-            value: true,
-						selected: true
-          }
-        ],
-        initial: 1
-      },
-
-      {
-        type: prev => (prev === true ? "text" : null),
-        name: "folderName",
-        message: "Please enter the name of the project folder:",
-        initial: (prev, values) => format.dash(values.projectName),
-        validate: (value) => {
-          if(value.trim().length < 1) {
-            return 'A folder name is required and cannot be blank.'; 
-          } else {
-            const pattern = /^[^\s^\x00-\x1f\\?*:"";<>|\/.][^\x00-\x1f\\?*:"";<>|\/]*[^\s^\x00-\x1f\\?*:"";<>|\/.]+$/g;
-            return (pattern.test(value) === false) ? `You have entered an invalid folder name!` : true;
-          }
-        }
-      },
-
-      {
         type: 'multiselect',
         name: 'dependencies',
-        message: 'Do you wish to include any of the following dependencies?',
+        message: 'Do you wish to include any of the following front-end dependencies?',
         choices: [
           { 
             title: 'Tailwind.css', 
@@ -215,8 +205,7 @@ const run = async () => {
 
   data.projectName        = answers.projectName;
   data.projectDescription = answers.projectDescription || '';
-  data.useFolder          = answers.createProjectFolder;
-  data.folderName         = data.useFolder ? answers.folderName : '';
+  data.folderName         = (data.args.extract !== true) ? answers.projectName : '';
   data.packageName        = format.underscore(data.projectName);
   data.tailwind           = answers.dependencies.includes('tailwind');
   data.year               = new Date().getFullYear();
@@ -225,47 +214,83 @@ const run = async () => {
   fullProjectPath = path.join(process.cwd(), data.folderName);
 
   console.log("");
-  console.log("Let's get started, it might take a while...");
+  console.log("Let's get started, this might take a while...");
   console.log("");
 
   // -----------------------------
   //  1. Preflight checklist
   // -----------------------------
 
-  spinner = ora(`1. Pre-flight checklist`).start();
+  spinner = ora(`${counter}. Pre-flight checklist`).start();
   await preFlightChecklist()
-    .then(() => { spinner.succeed(); })
+    .then(() => { 
+      spinner.succeed();
+      counter += 1; 
+    })
     .catch(exception => { onError(exception, spinner); });
   
   // -----------------------------
   //  2. Copy files
   // -----------------------------
 
-  spinner = ora(`2. Generating project files`).start();
+  spinner = ora(`${counter}. Generating project files`).start();
   try {
     const folders = {
       input: {
         'core': path.resolve(__dirname, 'src/templates/core'),
         'package-json': path.resolve(__dirname, 'src/templates/package-json'),
         'postcss-config': path.resolve(__dirname, 'src/templates/postcss-config'),
+        'git': path.resolve(__dirname, 'src/templates/git'),
+        'js': path.resolve(__dirname, 'src/templates/js'),
+        'css': path.resolve(__dirname, 'src/templates/css'),
         'tailwind': path.resolve(__dirname, 'src/templates/tailwind'),
         'webpack-config': path.resolve(__dirname, 'src/templates/webpack-config')
       },
       output: `./${data.folderName}`
     };
-  
+    
+    // Copy core files
     fs.copySync(folders.input['core'], folders.output);
+
+    // Create missing folders
+    fs.mkdirSync(`${folders.output}/src/fonts`, { recursive: true });
+    fs.mkdirSync(`${folders.output}/src/images`, { recursive: true });
+    fs.mkdirSync(`${folders.output}/src/media`, { recursive: true });
+    fs.mkdirSync(`${folders.output}/src/scripts`, { recursive: true });
+    fs.mkdirSync(`${folders.output}/src/static`, { recursive: true });
+    fs.mkdirSync(`${folders.output}/src/styles/components`, { recursive: true });
+
+    data.args.entrypoints.forEach(entrypoint => {
+      const entrypointData = {
+        ...data,
+        entrypoint: entrypoint
+      };
+      
+      copyTpl(`${folders.input['js']}/_index.js.ejs`, `${folders.output}/src/scripts/${entrypoint}.js`, entrypointData);
+      copyTpl(`${folders.input['css']}/_index.css.ejs`, `${folders.output}/src/styles/${entrypoint}.css`, entrypointData);
+    });
 
     if (data.tailwind === true) {
       copyTpl(`${folders.input['tailwind']}/tailwind.js`, `${folders.output}/tailwind.js`, data);
       copyTpl(`${folders.input['tailwind']}/tailwind.css`, `${folders.output}/src/styles/tailwind.css`, data);
     }
+
+    if (data.args.git) {
+      copyTpl(`${folders.input['git']}/_gitattributes.ejs`, `${folders.output}/.gitattributes`, data);
+      copyTpl(`${folders.input['git']}/_gitignore.ejs`, `${folders.output}/.gitignore`, data);
+      copyTpl(`${folders.input['git']}/_gitkeep.ejs`, `${folders.output}/src/fonts/.gitkeep`, data);
+      copyTpl(`${folders.input['git']}/_gitkeep.ejs`, `${folders.output}/src/images/.gitkeep`, data);
+      copyTpl(`${folders.input['git']}/_gitkeep.ejs`, `${folders.output}/src/media/.gitkeep`, data);
+      copyTpl(`${folders.input['git']}/_gitkeep.ejs`, `${folders.output}/src/static/.gitkeep`, data);
+      copyTpl(`${folders.input['git']}/_gitkeep.ejs`, `${folders.output}/src/styles/components/.gitkeep`, data);
+    }
   
-    copyTpl(`${folders.input['webpack-config']}/_webpack.base.conf.js`, `${folders.output}/src/tools/config/webpack/webpack.base.conf.js`, data);
-    copyTpl(`${folders.input['postcss-config']}/_postcss.config.js`, `${folders.output}/postcss.config.js`, data);
+    copyTpl(`${folders.input['webpack-config']}/_webpack.base.conf.js.ejs`, `${folders.output}/src/tools/config/webpack/webpack.base.conf.js`, data);
+    copyTpl(`${folders.input['postcss-config']}/_postcss.config.js.ejs`, `${folders.output}/postcss.config.js`, data);
     copyTpl(`${folders.input['package-json']}/_package.json`, `${folders.output}/package.json`, data);
 
     spinner.succeed();
+    counter += 1;
   } catch(exception) { 
     onError(exception, spinner); 
   }
@@ -274,10 +299,13 @@ const run = async () => {
   //  3. Install node dependencies
   // -----------------------------
 
-  if (args.install) {
-    spinner = ora(`3. Installing NPM dependencies`).start();
+  if (data.args.install) {
+    spinner = ora(`${counter}. Installing NPM dependencies`).start();
     await exec(`cd "${fullProjectPath}" && npm install`)
-      .then(() => { spinner.succeed(); })
+      .then(() => { 
+        spinner.succeed();
+        counter += 1; 
+      })
       .catch(exception => { onError(exception, spinner); });
   }
 
@@ -285,10 +313,13 @@ const run = async () => {
   //  4. Init git repo
   // -----------------------------
 
-  if (args.git) {
-    spinner = ora(`4. Initializing git repo`).start();
+  if (data.args.git) {
+    spinner = ora(`${counter}. Initializing git repo`).start();
     await exec(`cd "${fullProjectPath}" && git init`)
-      .then(() => { spinner.succeed(); })
+      .then(() => { 
+        spinner.succeed();
+        counter += 1; 
+      })
       .catch(exception => { onError(exception, spinner); });
   }
 
@@ -296,7 +327,7 @@ const run = async () => {
   //  5. Success
   // -----------------------------
 
-  outputOutroMessage(data.folderName, args.install, data.createFolder);
+  outputOutroMessage(data);
 };
 
 try {

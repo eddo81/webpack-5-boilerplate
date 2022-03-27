@@ -41,7 +41,7 @@ function prefix(string) {
     }
   }
 
-  // 2. If theme has only 1 word, use the first 3 letters of theme name
+  // 2. If project has only 1 word, use the first 3 letters of project name
   if (prefix.length < 2 && string.length > 2) {
     prefix = `${string.charAt(0)}${string.charAt(1)}${string.charAt(
       2

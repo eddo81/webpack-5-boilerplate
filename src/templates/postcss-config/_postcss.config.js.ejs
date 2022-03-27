@@ -7,14 +7,13 @@ const postcsscalc = require('postcss-calc');
 const postcsspreset = require('postcss-preset-env');
 const objectfitimages = require('postcss-object-fit-images');
 <% if(tailwind !== false) { -%>
-const tailwindcss = require('tailwindcss');<% } -%>
+const tailwindcss = require('tailwindcss');<%= "\n" %><% } -%>
 
 module.exports = {
 	plugins: [
 		postcssimport({ path: ["src/styles"] }),
 		postcssnested,
-		postcsscurrentselector({ "symbol": "&" }),
-    <% if(tailwind !== false) { -%>tailwindcss('./tailwind.js'),<% } -%>
+		postcsscurrentselector({ "symbol": "&" }),<% if(tailwind !== false) { -%><%= "\n    " %>tailwindcss('./tailwind.js'),<%= "\n" %><% } -%>
 		postcsscalc,
 		(_CONFIG.env.debug) ? undefined : autoprefixer,
 		postcsspreset,
