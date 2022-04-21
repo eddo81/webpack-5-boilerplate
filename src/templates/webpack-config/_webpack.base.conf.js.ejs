@@ -95,6 +95,7 @@ let baseConfig = {
 			patterns: [{
 				from: _CONFIG.resolve(_CONFIG.directories.entry.static.replace(/\/$/, '')),
 				to: '',
+        noErrorOnMissing: true,
 				globOptions: {
 					ignore: ['**/.gitkeep']
 				}
