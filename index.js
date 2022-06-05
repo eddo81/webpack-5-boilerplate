@@ -17,7 +17,11 @@ let args = {
   git: yargs.argv.git ? true : false,
 };
 
-if(yargs.array('entrypoints').argv?.entrypoints?.length > 0) {
+const hasMultipleEntrypoints = yargs.array('entrypoints').argv && 
+yargs.array('entrypoints').argv.entrypoints &&
+yargs.array('entrypoints').argv.entrypoints.length > 0;
+
+if(hasMultipleEntrypoints) {
   args.entrypoints = yargs.array('entrypoints').argv.entrypoints.map((entrypoint) => {
     entrypoint = entrypoint.replace(/[^A-Za-z\s]/g, ' ').trim();
     return format.dash(entrypoint); 

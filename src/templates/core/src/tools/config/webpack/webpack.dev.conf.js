@@ -8,7 +8,7 @@ let webpackConfig = merge(baseWebpackConfig, {
 	watch: true,
 
   watchOptions: {
-    ignored: [`**/${_CONFIG.directories.assets}`, '**/node_modules'],
+    ignored: [`**/${_CONFIG.directories.output.assets.replace(/[^a-z0-9]/gi, '')}`, '**/node_modules'],
   },
 
 	stats: 'minimal',

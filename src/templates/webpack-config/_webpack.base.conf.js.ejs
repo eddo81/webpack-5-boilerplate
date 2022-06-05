@@ -40,19 +40,19 @@ let baseConfig = {
 		{
 			test: _CONFIG.extensions.images,
 			type: 'asset/resource',
-			generator: { filename: `${_CONFIG.directories.output.images}[hash][ext][query]` }
+			generator: { filename: `${_CONFIG.directories.output.images}[name][ext][query]` }
 		},
 
 		{
 			test: _CONFIG.extensions.media,
 			type: 'asset/resource',
-			generator: { filename: `${_CONFIG.directories.output.media}[hash][ext][query]` }
+			generator: { filename: `${_CONFIG.directories.output.media}[name][ext][query]` }
 		},
 
 		{
 			test: _CONFIG.extensions.fonts,
 			type: 'asset/resource',
-			generator: { filename: `${_CONFIG.directories.output.fonts}[hash][ext][query]` }
+			generator: { filename: `${_CONFIG.directories.output.fonts}[name][ext][query]` }
 		},
 
 		{
