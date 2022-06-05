@@ -2,6 +2,7 @@
 
 const fs = require("fs-extra");
 const path = require("path");
+const pkg = require("./package.json");
 const ora = require("ora");
 const prompts = require("prompts");
 const { exec } = require("promisify-child-process");
@@ -37,10 +38,17 @@ let data;
  * Output intro message.
  */
 const outputIntroMessage = () => {
+  const header = `Webpack-5-Boilerplate v${pkg.version}`;
+  let border = "";
+  
+  while (border.length > header.length) {
+    border += "=";
+  }
+
   process.stdout.write("\u001b[2J\u001b[0;0H");
-  console.log(chalk.cyan("====================="));
-  console.log(chalk.cyan("Webpack-5-Boilerplate"));
-  console.log(chalk.cyan("====================="));
+  console.log(chalk.cyan(border));
+  console.log(chalk.cyan(header));
+  console.log(chalk.cyan(border));
   console.log("");
   console.log("You're about to run the setup script for your project in this directory:");
   console.log("");
