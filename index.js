@@ -41,7 +41,7 @@ const outputIntroMessage = () => {
   const header = `Webpack-5-Boilerplate v${pkg.version}`;
   let border = "";
   
-  while (border.length > header.length) {
+  while (border.length < header.length) {
     border += "=";
   }
 
