@@ -51,7 +51,7 @@ module.exports = {
 	important: false,
   mode: 'jit',
 	purge: [
-		'./*.html',
+		'./src/**/*.html',
 		'./src/**/*.json',
 		'./src/**/*.js',
 		'./src/**/*.css'
