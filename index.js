@@ -199,6 +199,11 @@ const run = async () => {
             title: 'Cache bust Css and JavaScript files', 
             value: 'cachebusting',
             selected: false 
+          },
+          { 
+            title: 'Html webpack plugin', 
+            value: 'htmlwebpackplugin',
+            selected: false 
           }
         ],
         instructions: false,
@@ -235,6 +240,7 @@ const run = async () => {
   data.folderName         = (data.args.extract !== true) ? answers.projectName : '';
   data.packageName        = format.underscore(data.projectName);
   data.cachebusting       = answers.features.includes('cachebusting');
+  data.htmlwebpackplugin  = answers.features.includes('htmlwebpackplugin');
   data.tailwind           = answers.dependencies.includes('tailwind');
   data.year               = new Date().getFullYear();
 
@@ -271,6 +277,7 @@ const run = async () => {
         'git': path.resolve(__dirname, 'src/templates/git'),
         'js': path.resolve(__dirname, 'src/templates/js'),
         'css': path.resolve(__dirname, 'src/templates/css'),
+        'html': path.resolve(__dirname, 'src/templates/html'),
         'tailwind': path.resolve(__dirname, 'src/templates/tailwind'),
         'webpack-config': path.resolve(__dirname, 'src/templates/webpack-config')
       },
@@ -288,6 +295,10 @@ const run = async () => {
     fs.mkdirSync(`${folders.output}/src/static`, { recursive: true });
     fs.mkdirSync(`${folders.output}/src/styles/components`, { recursive: true });
 
+    if (data.htmlwebpackplugin === true) {
+      fs.mkdirSync(`${folders.output}/src/html`, { recursive: true });
+    }
+
     data.args.entrypoints.forEach(entrypoint => {
       const entrypointData = {
         ...data,
@@ -303,6 +314,10 @@ const run = async () => {
       copyTpl(`${folders.input['tailwind']}/tailwind.css`, `${folders.output}/src/styles/tailwind.css`, data);
     }
 
+    if (data.htmlwebpackplugin === true) {
+      copyTpl(`${folders.input['html']}/index.html`, `${folders.output}/src/html/index.html`, data);
+    }
+
     if (data.args.git) {
       copyTpl(`${folders.input['git']}/_gitattributes.ejs`, `${folders.output}/.gitattributes`, data);
       copyTpl(`${folders.input['git']}/_gitignore.ejs`, `${folders.output}/.gitignore`, data);
@@ -315,6 +330,7 @@ const run = async () => {
   
     copyTpl(`${folders.input['webpack-config']}/_webpack.base.conf.js.ejs`, `${folders.output}/src/tools/config/webpack/webpack.base.conf.js`, data);
     copyTpl(`${folders.input['webpack-config']}/_webpack.prod.conf.js.ejs`, `${folders.output}/src/tools/config/webpack/webpack.prod.conf.js`, data);
+    copyTpl(`${folders.input['webpack-config']}/_index.js.ejs`, `${folders.output}/src/tools/config/index.js`, data);
     copyTpl(`${folders.input['postcss-config']}/_postcss.config.js.ejs`, `${folders.output}/postcss.config.js`, data);
     copyTpl(`${folders.input['package-json']}/_package.json`, `${folders.output}/package.json`, data);
 

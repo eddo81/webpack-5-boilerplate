@@ -2,7 +2,8 @@ const _CONFIG = require('../index.js');
 const webpack = require('webpack');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
-const ESLintPlugin = require('eslint-webpack-plugin');
+const ESLintPlugin = require('eslint-webpack-plugin');<%= "\n" %><% if(htmlwebpackplugin === true) { -%>
+const HtmlWebpackPlugin = require('html-webpack-plugin');<% } -%>
 
 console.log(`building for ${_CONFIG.env.mode}...\n`);
 
@@ -90,6 +91,11 @@ let baseConfig = {
 			filename: `${_CONFIG.directories.output.css}[name]<% if(cachebusting === true){ -%>${_CONFIG.env.debug ? '' : '.[contenthash]'}<% } -%>.css`,
 			chunkFilename: '[id].[contenthash].css'
 		}),
+
+    <% if(htmlwebpackplugin === true) { -%>
+    new HtmlWebpackPlugin({
+      template: `${_CONFIG.directories.entry.html}index.html`,
+    }),<% } -%>
 
 		new CopyWebpackPlugin({
 			patterns: [{
