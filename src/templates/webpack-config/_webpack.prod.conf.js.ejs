@@ -8,7 +8,7 @@ let webpackConfig = merge(baseWebpackConfig, {
   devtool: 'source-map',
 
   output: {
-    chunkFilename: `${_CONFIG.directories.output.js}[name].[chunkhash].js`
+    chunkFilename: `${_CONFIG.directories.output.js}[name]<% if(cachebusting === true){ -%>.[chunkhash]<% } -%>.js`
   },
 
   plugins: [],

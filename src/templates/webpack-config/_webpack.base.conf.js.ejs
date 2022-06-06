@@ -19,7 +19,7 @@ let baseConfig = {
 
 	output: {
 		path: _CONFIG.resolve(_CONFIG.directories.output.assets),
-		filename: `${_CONFIG.directories.output.js}[name]${_CONFIG.env.debug ? '' : '.[chunkhash]'}.js`,
+		filename: `${_CONFIG.directories.output.js}[name]<% if(cachebusting === true){ -%>${_CONFIG.env.debug ? '' : '.[chunkhash]'}<% } -%>.js`,
 	},
 
 	resolve: {
@@ -87,7 +87,7 @@ let baseConfig = {
 		}),
 
 		new MiniCssExtractPlugin({
-			filename: `${_CONFIG.directories.output.css}[name]${_CONFIG.env.debug ? '' : '.[contenthash]'}.css`,
+			filename: `${_CONFIG.directories.output.css}[name]<% if(cachebusting === true){ -%>${_CONFIG.env.debug ? '' : '.[contenthash]'}<% } -%>.css`,
 			chunkFilename: '[id].[contenthash].css'
 		}),
 

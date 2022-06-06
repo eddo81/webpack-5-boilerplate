@@ -192,6 +192,21 @@ const run = async () => {
 
       {
         type: 'multiselect',
+        name: 'features',
+        message: 'Do you wish to enable any of the following project features?',
+        choices: [
+          { 
+            title: 'Cache bust Css and JavaScript files', 
+            value: 'cachebusting',
+            selected: false 
+          }
+        ],
+        instructions: false,
+        hint: "- Space to select. Return to submit."
+      },
+
+      {
+        type: 'multiselect',
         name: 'dependencies',
         message: 'Do you wish to include any of the following front-end dependencies?',
         choices: [
@@ -219,6 +234,7 @@ const run = async () => {
   data.projectDescription = answers.projectDescription || '';
   data.folderName         = (data.args.extract !== true) ? answers.projectName : '';
   data.packageName        = format.underscore(data.projectName);
+  data.cachebusting       = answers.features.includes('cachebusting');
   data.tailwind           = answers.dependencies.includes('tailwind');
   data.year               = new Date().getFullYear();
 
@@ -298,6 +314,7 @@ const run = async () => {
     }
   
     copyTpl(`${folders.input['webpack-config']}/_webpack.base.conf.js.ejs`, `${folders.output}/src/tools/config/webpack/webpack.base.conf.js`, data);
+    copyTpl(`${folders.input['webpack-config']}/_webpack.prod.conf.js.ejs`, `${folders.output}/src/tools/config/webpack/webpack.prod.conf.js`, data);
     copyTpl(`${folders.input['postcss-config']}/_postcss.config.js.ejs`, `${folders.output}/postcss.config.js`, data);
     copyTpl(`${folders.input['package-json']}/_package.json`, `${folders.output}/package.json`, data);
 
